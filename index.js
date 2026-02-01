@@ -78,19 +78,29 @@ const processExcel = async () => {
         console.log(`[${index + 1}/${data.length}] ✂️  Procesando: "${fileName}"`);
         console.log(`   ⏱️  Tiempo: ${formatSeconds(startTime)} -> ${endTime ? formatSeconds(endTime) : 'FIN'}`);
 
-        const ffmpegOptions = [
-            `-ss ${startTime}`, // Punto de inicio
+        // Input Seeking: -ss antes del input para rapidez y precisión sin re-encoding
+        const inputOptions = [
+            `-ss ${startTime}`
+        ];
+
+        const outputOptions = [
             '-c copy',          // COPIA DIRECTA (Sin recodificar)
             '-map 0'            // Copia todos los tracks (audio y video)
         ];
 
         if (endTime) {
-            ffmpegOptions.push(`-to ${endTime}`); // Punto final exacto
+            const duration = endTime - startTime;
+            if (duration > 0) {
+                outputOptions.push(`-t ${duration}`); // Duración del clip
+            } else {
+                console.warn(`⚠️  Duración inválida (${duration}s) para ${fileName}. Se omitirá el corte final.`);
+            }
         }
 
         await new Promise((resolve, reject) => {
             ffmpeg(VIDEO_FILE)
-                .outputOptions(ffmpegOptions)
+                .inputOptions(inputOptions)
+                .outputOptions(outputOptions)
                 .output(outputPath)
                 .on('end', () => {
                     resolve();
