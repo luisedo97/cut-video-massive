@@ -38,9 +38,16 @@ const COL_END = 'fin';
 const COL_NAME = 'nombre';
 // ---------------------
 
-if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR);
-
 const processExcel = async () => {
+    // Definir carpeta de salida específica basada en el nombre del video
+    const videoName = path.parse(VIDEO_FILE).name;
+    const FINAL_OUTPUT_DIR = path.join(OUTPUT_DIR, videoName);
+
+    if (!fs.existsSync(FINAL_OUTPUT_DIR)) {
+        fs.mkdirSync(FINAL_OUTPUT_DIR, { recursive: true });
+    }
+
+    console.log(`📂 Carpeta de salida: ${FINAL_OUTPUT_DIR}`);
     console.log('📊 Leyendo Excel...');
 
     // Leer el archivo y convertir la primera hoja a JSON
@@ -73,7 +80,7 @@ const processExcel = async () => {
         });
 
         const fileName = cleanName + '.mp4';
-        const outputPath = path.join(OUTPUT_DIR, fileName);
+        const outputPath = path.join(FINAL_OUTPUT_DIR, fileName);
 
         console.log(`[${index + 1}/${data.length}] ✂️  Procesando: "${fileName}"`);
         console.log(`   ⏱️  Tiempo: ${formatSeconds(startTime)} -> ${endTime ? formatSeconds(endTime) : 'FIN'}`);
